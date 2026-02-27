@@ -7,7 +7,7 @@ import Tooltip from '../components/ui/Tooltip.jsx';
 import Tags from '../components/ui/Tags.jsx';
 import QuestionMarkCircleIcon from '../components/ui/icons/QuestionMarkCircleIcon.jsx';
 import { useShallow } from "zustand/react/shallow";
-import { useCustomization, useStandardPropertyOverride, useIsPropertyHidden, convertEnumToOptions } from '../hooks/useCustomization.js';
+import { useCustomization, useStandardPropertyOverride, useIsPropertyHidden, convertEnumToOptions, applyOverrides } from '../hooks/useCustomization.js';
 import { CustomSections, UngroupedCustomProperties } from '../components/ui/CustomSection.jsx';
 
 const Overview = () => {
@@ -146,7 +146,8 @@ const Overview = () => {
 
 					{/* Fundamentals Section */}
 					<div>
-						<h3 className="text-base font-semibold leading-6 text-gray-900 mb-3">Fundamentals</h3>
+						<h3 className="text-base font-semibold leading-6 text-gray-900">Fundamentals</h3>
+						<p className="mt-1 text-xs leading-4 text-gray-500 mb-4">Core metadata identifying the data contract, including name, version, status, and organizational context.</p>
 
 						<div className="space-y-4">
 							<div className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
@@ -160,7 +161,12 @@ const Overview = () => {
 										required={nameOverride?.required ?? true}
 										tooltip={nameOverride?.description || "The name of the data contract"}
 										placeholder={nameOverride?.placeholder || "Enter document name"}
-										externalErrors={[]}
+										pattern={nameOverride?.pattern}
+										patternMessage={nameOverride?.patternMessage}
+										minLength={nameOverride?.minLength}
+										maxLength={nameOverride?.maxLength}
+										validationKey="root.name"
+										validationSection="Overview"
 										data-1p-ignore
 									/>
 								)}
@@ -175,7 +181,12 @@ const Overview = () => {
 										required={versionOverride?.required ?? true}
 										tooltip={versionOverride?.description || "Version number using semantic versioning"}
 										placeholder={versionOverride?.placeholder || "1.0.0"}
-										externalErrors={[]}
+										pattern={versionOverride?.pattern}
+										patternMessage={versionOverride?.patternMessage}
+										minLength={versionOverride?.minLength}
+										maxLength={versionOverride?.maxLength}
+										validationKey="root.version"
+										validationSection="Overview"
 									/>
 								)}
 
@@ -189,7 +200,12 @@ const Overview = () => {
 										required={idOverride?.required ?? true}
 										tooltip={idOverride?.description || "Unique identifier for this data contract"}
 										placeholder={idOverride?.placeholder || "unique-identifier"}
-										externalErrors={[]}
+										pattern={idOverride?.pattern}
+										patternMessage={idOverride?.patternMessage}
+										minLength={idOverride?.minLength}
+										maxLength={idOverride?.maxLength}
+										validationKey="root.id"
+										validationSection="Overview"
 									/>
 								)}
 
@@ -205,7 +221,10 @@ const Overview = () => {
 										acceptAnyInput={!statusOverride?.enum}
 										required={statusOverride?.required ?? true}
 										tooltip={statusOverride?.description || "Current status of the data contract"}
-										externalErrors={[]}
+										pattern={statusOverride?.pattern}
+										patternMessage={statusOverride?.patternMessage}
+										validationKey="root.status"
+										validationSection="Overview"
 									/>
 								)}
 
@@ -221,7 +240,10 @@ const Overview = () => {
 										acceptAnyInput={!tenantOverride?.enum}
 										required={tenantOverride?.required ?? false}
 										tooltip={tenantOverride?.description || "Tenant or organization this contract belongs to"}
-										externalErrors={[]}
+										pattern={tenantOverride?.pattern}
+										patternMessage={tenantOverride?.patternMessage}
+										validationKey="root.tenant"
+										validationSection="Overview"
 									/>
 								)}
 
@@ -237,7 +259,10 @@ const Overview = () => {
 										acceptAnyInput={!domainOverride?.enum}
 										required={domainOverride?.required ?? false}
 										tooltip={domainOverride?.description || "Business domain or category of this data contract"}
-										externalErrors={[]}
+										pattern={domainOverride?.pattern}
+										patternMessage={domainOverride?.patternMessage}
+										validationKey="root.domain"
+										validationSection="Overview"
 									/>
 								)}
 
@@ -275,6 +300,8 @@ const Overview = () => {
 								onPropertyChange={updateCustomProperty}
 								context={rootContext}
 								yamlParts={yamlParts}
+								validationKeyPrefix="root"
+								validationSection="Overview"
 							/>
 						</div>
 					)}
@@ -287,6 +314,8 @@ const Overview = () => {
 						onPropertyChange={updateCustomProperty}
 						context={rootContext}
 						yamlParts={yamlParts}
+						validationKeyPrefix="root"
+						validationSection="Overview"
 					/>
 
 				</div>
