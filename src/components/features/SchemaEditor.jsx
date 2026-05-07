@@ -187,6 +187,68 @@ const SchemaEditor = ({schemaIndex}) => {
 		setSelectedPropertyPath(null);
 	}, [schemaIndex]);
 
+	// Track whether initial expansion has been applied for the current schemaIndex.
+	// Reset on schemaIndex change so we re-expand when navigating to another schema.
+	const hasInitializedExpansion = useRef(false);
+	useEffect(() => {
+		hasInitializedExpansion.current = false;
+	}, [schemaIndex]);
+
+	// On first availability of properties for the current schema, expand all nested
+	// objects/arrays so the full structure is visible by default.
+	useEffect(() => {
+		if (hasInitializedExpansion.current) return;
+
+		const properties = schema?.[schemaIndex]?.properties;
+		if (!Array.isArray(properties)) return;
+
+		const keys = new Set();
+
+		const collectFromProperties = (props, propPath) => {
+			if (!Array.isArray(props)) return;
+			props.forEach((prop, idx) => {
+				const currentPath = [...propPath, idx];
+				const pathKey = `${schemaIndex}-${currentPath.join('-')}`;
+				const hasSubProps = Array.isArray(prop?.properties) && prop.properties.length > 0;
+				const isArrayType = prop?.logicalType === 'array';
+				const hasItems = !!prop?.items;
+
+				if (hasSubProps || (isArrayType && hasItems)) {
+					keys.add(pathKey);
+				}
+				if (hasSubProps) {
+					collectFromProperties(prop.properties, currentPath);
+				}
+				if (isArrayType && hasItems) {
+					collectFromItems(prop.items, currentPath);
+				}
+			});
+		};
+
+		const collectFromItems = (items, propPath) => {
+			if (!items) return;
+			const itemsPathKey = `${schemaIndex}-${propPath.join('-')}-items`;
+			const itemsPath = [...propPath, 'items'];
+			const hasSubProps = Array.isArray(items?.properties) && items.properties.length > 0;
+			const isArrayType = items?.logicalType === 'array';
+			const hasNestedItems = !!items?.items;
+
+			if (hasSubProps || (isArrayType && hasNestedItems)) {
+				keys.add(itemsPathKey);
+			}
+			if (hasSubProps) {
+				collectFromProperties(items.properties, itemsPath);
+			}
+			if (isArrayType && hasNestedItems) {
+				collectFromItems(items.items, itemsPath);
+			}
+		};
+
+		collectFromProperties(properties, []);
+		setExpandedProperties(keys);
+		hasInitializedExpansion.current = true;
+	}, [schema, schemaIndex]);
+
 	// Track property count for auto-edit detection
 	useEffect(() => {
 		try {
@@ -359,6 +421,19 @@ const SchemaEditor = ({schemaIndex}) => {
 			property,
 			definition,
 		});
+
+		// Auto-expand objects and arrays on selection so the user can immediately
+		// see/add sub-properties or items.
+		const effectiveLogicalType = property?.logicalType || definition?.logicalType;
+		if (effectiveLogicalType === 'object' || effectiveLogicalType === 'array') {
+			const pathKey = `${schemaIndex}-${propPath.join('-')}`;
+			setExpandedProperties(prev => {
+				if (prev.has(pathKey)) return prev;
+				const next = new Set(prev);
+				next.add(pathKey);
+				return next;
+			});
+		}
 	}, [schemaIndex]);
 
 	// Handle closing the drawer
