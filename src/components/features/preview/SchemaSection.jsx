@@ -11,15 +11,13 @@ import {useShallow} from "zustand/react/shallow";
 
 // Memoized property row component
 const SchemaProperty = ({ property, propertyName, schemaName, indent = 0 }) => {
-	const indentSpaces = '    '.repeat(Math.max(0, indent - 1));
 	const hasChildren = property.properties && Array.isArray(property.properties) && property.properties.length > 0;
 
 	return (
 		<Fragment key={`${schemaName}-${propertyName}`}>
 			<tr className="print:break-inside-avoid-page">
 				<td className="py-2 pl-4 pr-2 text-sm font-medium text-gray-900 sm:pl-6 w-fit flex">
-					<span>
-						{indent > 0 && indentSpaces}
+					<span style={{ paddingLeft: `${Math.max(0, indent - 1) * 1.25}rem` }}>
 						{indent > 0 && <span className="mr-1">↳</span>}
 					</span>
 					<div>
