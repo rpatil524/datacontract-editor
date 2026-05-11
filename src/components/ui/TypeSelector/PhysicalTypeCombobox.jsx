@@ -26,6 +26,7 @@ const PhysicalTypeCombobox = ({
   className = '',
   label = 'Physical Type',
   placeholder = 'e.g., VARCHAR(255)',
+  placeholderClassName = 'placeholder:text-gray-400',
 }) => {
   const [query, setQuery] = useState('');
 
@@ -79,7 +80,7 @@ const PhysicalTypeCombobox = ({
       )}
       <div className="relative">
         <ComboboxInput
-          className="w-full rounded-md border-0 bg-white py-1.5 pl-2 pr-8 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 text-xs disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
+          className={`w-full rounded-md border-0 bg-white py-1.5 pl-2 pr-8 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 ${placeholderClassName} focus:ring-2 focus:ring-inset focus:ring-indigo-600 text-xs disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed`}
           onChange={handleInputChange}
           onBlur={() => setQuery('')}
           displayValue={(item) => item || ''}

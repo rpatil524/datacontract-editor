@@ -455,7 +455,7 @@ const SchemaEditor = ({schemaIndex}) => {
 			const currentProperties = schema[schemaIndex].properties || [];
 			const newProperty = {
 				name: definition.businessName || definition.name?.split('/').pop() || '',
-				authoritativeDefinitions: [{type: 'semantic', url: definition.url}],
+				authoritativeDefinitions: [{type: 'semantics', url: definition.url}],
 			};
 
 			setValue(`schema[${schemaIndex}].properties`, [...currentProperties, newProperty]);

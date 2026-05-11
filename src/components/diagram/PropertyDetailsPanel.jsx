@@ -1,5 +1,6 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {isSafeKey} from '../../utils/safeProperty.js';
+import {isSemanticAuthDef} from '../../utils/authDefTypes.js';
 import {Disclosure, DisclosureButton, DisclosurePanel, Popover, PopoverButton, PopoverPanel} from '@headlessui/react';
 import ChevronRightIcon from '../ui/icons/ChevronRightIcon.jsx';
 import ChevronDownIcon from '../ui/icons/ChevronDownIcon.jsx';
@@ -159,9 +160,9 @@ const PropertyDetailsPanel = ({ property, onUpdate, onDelete, focusSection, focu
     onUpdate(field, value);
   }, [onUpdate]);
 
-  // Get semantic definition from authoritative definitions (type === 'semantic', with fallback to 'definition')
+  // Get semantic definition from authoritative definitions (type === 'semantics' / 'semantic', with fallback to 'definition')
   const semanticDefinition = useMemo(() => {
-    const def = property.authoritativeDefinitions?.find(d => d.type === 'semantic')
+    const def = property.authoritativeDefinitions?.find(d => isSemanticAuthDef(d))
       || property.authoritativeDefinitions?.find(d => d.type === 'definition');
     console.log('Semantic definition found:', def);
     return def;
@@ -218,7 +219,7 @@ const PropertyDetailsPanel = ({ property, onUpdate, onDelete, focusSection, focu
 
   // Remove semantic definition
   const removeSemanticDefinition = useCallback(() => {
-    const filtered = property.authoritativeDefinitions?.filter(d => d.type !== 'semantic' && d.type !== 'definition');
+    const filtered = property.authoritativeDefinitions?.filter(d => !isSemanticAuthDef(d) && d.type !== 'definition');
     updateField('authoritativeDefinitions', filtered?.length ? filtered : undefined);
   }, [property.authoritativeDefinitions, updateField]);
 
@@ -228,15 +229,15 @@ const PropertyDetailsPanel = ({ property, onUpdate, onDelete, focusSection, focu
     // Use the full URL if available, otherwise use name (which might be a path)
     const definitionUrl = definition.url || definition.name;
 
-    const newDef = { type: 'semantic', url: definitionUrl };
+    const newDef = { type: 'semantics', url: definitionUrl };
     const defs = property.authoritativeDefinitions || [];
-    updateField('authoritativeDefinitions', [...defs.filter(d => d.type !== 'semantic' && d.type !== 'definition'), newDef]);
+    updateField('authoritativeDefinitions', [...defs.filter(d => !isSemanticAuthDef(d) && d.type !== 'definition'), newDef]);
   }, [property.authoritativeDefinitions, updateField]);
 
   // Get authoritative definitions excluding semantic definition (when semantics section visible)
   const filteredAuthoritativeDefinitions = useMemo(() => {
     if (!isSemanticsEnabled) return property.authoritativeDefinitions;
-    return property.authoritativeDefinitions?.filter(d => d.type !== 'semantic' && d.type !== 'definition');
+    return property.authoritativeDefinitions?.filter(d => !isSemanticAuthDef(d) && d.type !== 'definition');
   }, [property.authoritativeDefinitions, isSemanticsEnabled]);
 
   // Renders any custom properties anchored after the given standard field.
@@ -314,6 +315,7 @@ const PropertyDetailsPanel = ({ property, onUpdate, onDelete, focusSection, focu
                   required={businessNameOverride?.required}
                   tooltip={businessNameOverride?.description}
                   placeholder={definitionData?.businessName || businessNameOverride?.placeholder || "Human-readable name"}
+                  placeholderClassName={definitionData?.businessName && !property.businessName ? 'placeholder:text-blue-400' : 'placeholder:text-gray-400'}
                   pattern={businessNameOverride?.pattern}
                   patternMessage={businessNameOverride?.patternMessage}
                   minLength={businessNameOverride?.minLength}
@@ -332,6 +334,7 @@ const PropertyDetailsPanel = ({ property, onUpdate, onDelete, focusSection, focu
                   required={physicalNameOverride?.required}
                   tooltip={physicalNameOverride?.description}
                   placeholder={definitionData?.physicalName || physicalNameOverride?.placeholder || "Actual database column name"}
+                  placeholderClassName={definitionData?.physicalName && !property.physicalName ? 'placeholder:text-blue-400' : 'placeholder:text-gray-400'}
                   pattern={physicalNameOverride?.pattern}
                   patternMessage={physicalNameOverride?.patternMessage}
                   minLength={physicalNameOverride?.minLength}
@@ -379,6 +382,7 @@ const PropertyDetailsPanel = ({ property, onUpdate, onDelete, focusSection, focu
                   logicalType={property.logicalType}
                   label={physicalTypeOverride?.title || "Physical Type"}
                   placeholder={definitionData?.physicalType || physicalTypeOverride?.placeholder || "e.g., VARCHAR(255)"}
+                  placeholderClassName={definitionData?.physicalType && !property.physicalType ? 'placeholder:text-blue-400' : 'placeholder:text-gray-400'}
                 />
               )}
               {renderCustomAfter('physicalType')}
@@ -634,8 +638,8 @@ const PropertyDetailsPanel = ({ property, onUpdate, onDelete, focusSection, focu
                       type="text"
                       value={property.logicalTypeOptions?.pattern || ''}
                       onChange={(e) => updateField('logicalTypeOptions', { ...property.logicalTypeOptions, pattern: e.target.value || undefined })}
-                      className="w-full rounded-md border border-gray-300 bg-white px-2 py-1 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-xs font-mono"
-                      placeholder="Regular expression"
+                      className={`w-full rounded-md border border-gray-300 bg-white px-2 py-1 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-xs font-mono ${definitionData?.pattern && !property.logicalTypeOptions?.pattern ? 'placeholder:text-blue-400' : ''}`}
+                      placeholder={definitionData?.pattern || "Regular expression"}
                     />
                   </div>
                 </>
@@ -857,9 +861,9 @@ const PropertyDetailsPanel = ({ property, onUpdate, onDelete, focusSection, focu
                           const newValue = e.target.value === 'true' ? true : e.target.value === 'false' ? false : undefined;
                           updateField('required', newValue);
                         }}
-                        className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-1.5 pl-3 pr-8 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 text-xs"
+                        className={`col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-1.5 pl-3 pr-8 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 text-xs ${property.required === undefined && typeof definitionData?.required === 'boolean' ? 'text-blue-400' : 'text-gray-900'}`}
                       >
-                        <option value="">Not set</option>
+                        <option value="">{typeof definitionData?.required === 'boolean' ? `Not set (semantic: ${definitionData.required ? 'True' : 'False'})` : 'Not set'}</option>
                         <option value="false">False</option>
                         <option value="true">True</option>
                       </select>
@@ -883,9 +887,9 @@ const PropertyDetailsPanel = ({ property, onUpdate, onDelete, focusSection, focu
                           const newValue = e.target.value === 'true' ? true : e.target.value === 'false' ? false : undefined;
                           updateField('unique', newValue);
                         }}
-                        className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-1.5 pl-3 pr-8 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 text-xs"
+                        className={`col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-1.5 pl-3 pr-8 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 text-xs ${property.unique === undefined && typeof definitionData?.unique === 'boolean' ? 'text-blue-400' : 'text-gray-900'}`}
                       >
-                        <option value="">Not set</option>
+                        <option value="">{typeof definitionData?.unique === 'boolean' ? `Not set (semantic: ${definitionData.unique ? 'True' : 'False'})` : 'Not set'}</option>
                         <option value="false">False</option>
                         <option value="true">True</option>
                       </select>
@@ -1046,6 +1050,7 @@ const PropertyDetailsPanel = ({ property, onUpdate, onDelete, focusSection, focu
                     required={classificationOverride?.required}
                     tooltip={classificationOverride?.description}
                     placeholder={definitionData?.classification || classificationOverride?.placeholder || "e.g., confidential, public, internal"}
+                    placeholderClassName={definitionData?.classification && !property.classification ? 'placeholder:text-blue-400' : 'placeholder:text-gray-400'}
                     pattern={classificationOverride?.pattern}
                     patternMessage={classificationOverride?.patternMessage}
                     minLength={classificationOverride?.minLength}
@@ -1093,6 +1098,7 @@ const PropertyDetailsPanel = ({ property, onUpdate, onDelete, focusSection, focu
                   required={encryptedNameOverride?.required}
                   tooltip={encryptedNameOverride?.description}
                   placeholder={definitionData?.encryptedName || encryptedNameOverride?.placeholder || "Encrypted field reference"}
+                  placeholderClassName={definitionData?.encryptedName && !property.encryptedName ? 'placeholder:text-blue-400' : 'placeholder:text-gray-400'}
                   pattern={encryptedNameOverride?.pattern}
                   patternMessage={encryptedNameOverride?.patternMessage}
                   minLength={encryptedNameOverride?.minLength}
