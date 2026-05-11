@@ -10,6 +10,7 @@ import {CSS} from '@dnd-kit/utilities';
 import {toAbsoluteUrl} from "../../../lib/urlUtils.js";
 import DefinitionIcon from "../../ui/icons/DefinitionIcon.jsx";
 import {useDefinition} from '../../../hooks/useDefinition.js';
+import {isSemanticAuthDef} from '../../../utils/authDefTypes.js';
 
 /**
  * Recursive component to render a property and its sub-properties
@@ -68,7 +69,7 @@ const PropertyRow = ({
 	// Get definition data using hook
 	const { getDefinition } = useDefinition();
 	const [definition, setDefinition] = useState(null);
-	const definitionUrl = (property.authoritativeDefinitions?.find(d => d.type === 'semantic') || property.authoritativeDefinitions?.find(d => d.type === 'definition'))?.url;
+	const definitionUrl = (property.authoritativeDefinitions?.find(d => isSemanticAuthDef(d)) || property.authoritativeDefinitions?.find(d => d.type === 'definition'))?.url;
 	const absoluteDefinitionUrl = definitionUrl ? toAbsoluteUrl(definitionUrl) : null;
 
 	// Fetch definition data when URL changes

@@ -62,7 +62,7 @@ export function IconResolver({ url, type, className = "h-4 w-4" }) {
       if (lowerType.includes('collibra')) return 'collibra';
       if (lowerType.includes('onetrust')) return 'onetrust';
       if (lowerType.includes('deleted')) return 'deleted';
-      if (lowerType === 'semantic') return 'semantic';
+      if (lowerType === 'semantic' || lowerType === 'semantics') return 'semantic';
     }
 
     // Fall back to URL-based detection
