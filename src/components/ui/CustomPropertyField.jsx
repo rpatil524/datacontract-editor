@@ -542,13 +542,16 @@ const CustomPropertyField = ({
   validationKey,
   validationSection,
 }) => {
-  const { type = 'text', condition } = config;
+  const { type = 'text', condition, hidden } = config;
 
-  // Evaluate condition - hide field if condition not met
+  // hidden:true hides the property from form-style UIs (managed externally via API/YAML).
+  // Monaco YAML editing remains unfiltered — this component does not drive that surface.
+  // Mirrors the `hidden` semantics on standard properties.
   const shouldShow = useMemo(() => {
+    if (hidden === true) return false;
     if (!condition) return true;
     return evaluateCondition(condition, yamlParts, context);
-  }, [condition, yamlParts, context]);
+  }, [hidden, condition, yamlParts, context]);
 
   // Validate current value
   const validationErrors = useMemo(

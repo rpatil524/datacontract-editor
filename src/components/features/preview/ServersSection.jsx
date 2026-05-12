@@ -5,9 +5,11 @@ import PropertyValueRenderer from '../../ui/PropertyValueRenderer.jsx';
 import QuestionMarkCircleIcon from '../../ui/icons/QuestionMarkCircleIcon.jsx';
 import {useEditorStore} from "../../../store.js";
 import {useShallow} from "zustand/react/shallow";
+import {useHiddenCustomPropertyNames} from "../../../hooks/useCustomization.js";
 
 // Memoized Server Item component
 const ServerItem = memo(({ server }) => {
+	const hiddenNames = useHiddenCustomPropertyNames('servers');
 	const getServerIcon = (serverType) => {
 		if (!serverType) return null;
 		const type = serverType.toLowerCase();
@@ -170,12 +172,13 @@ const ServerItem = memo(({ server }) => {
 							Array.isArray(server.customProperties) ? server.customProperties.length > 0 :
 							typeof server.customProperties === 'object' && Object.keys(server.customProperties).length > 0
 						) && (() => {
-							const normalizedProps = Array.isArray(server.customProperties)
+							const rawProps = Array.isArray(server.customProperties)
 								? server.customProperties
 								: Object.entries(server.customProperties).map(([key, value]) => ({
 									property: key,
 									value: value,
 								}));
+							const normalizedProps = rawProps.filter((p) => !hiddenNames.has(p.property));
 							return normalizedProps.map((customProperty, cpIndex) => (
 								<div key={cpIndex} className="flex flex-col">
 									<dt

@@ -2,9 +2,11 @@ import { memo } from 'react';
 import CustomPropertiesPreview from '../../ui/CustomPropertiesPreview.jsx';
 import {useEditorStore} from "../../../store.js";
 import {useShallow} from "zustand/react/shallow";
+import {useHiddenCustomPropertyNames} from "../../../hooks/useCustomization.js";
 
 // Memoized Role Item component
 const RoleItem = memo(({ role }) => {
+	const hiddenNames = useHiddenCustomPropertyNames('roles');
 	return (
 		<li className="relative flex flex-col gap-y-2 px-4 py-3 sm:px-6">
 			<div className="flex flex-wrap gap-x-6 gap-y-2">
@@ -44,7 +46,7 @@ const RoleItem = memo(({ role }) => {
 					<div className="sm:flex sm:flex-col">
 						<dt className="text-sm font-medium text-gray-500">Custom Properties</dt>
 						<dd className="flex flex-wrap gap-x-4 gap-y-1">
-							<CustomPropertiesPreview properties={role.customProperties}/>
+							<CustomPropertiesPreview properties={role.customProperties} hiddenPropertyNames={hiddenNames}/>
 						</dd>
 					</div>
 				</div>

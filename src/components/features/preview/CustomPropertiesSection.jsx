@@ -3,9 +3,11 @@ import PropertyValueRenderer from '../../ui/PropertyValueRenderer.jsx';
 import QuestionMarkCircleIcon from '../../ui/icons/QuestionMarkCircleIcon.jsx';
 import {useEditorStore} from "../../../store.js";
 import {useShallow} from "zustand/react/shallow";
+import {useHiddenCustomPropertyNames} from "../../../hooks/useCustomization.js";
 
 const CustomPropertiesSection = () => {
 	const customProperties = useEditorStore(useShallow(state => state.getValue('customProperties')));
+	const hiddenNames = useHiddenCustomPropertyNames('root');
 
 	// Normalize properties to array format
 	// Handle both array format [{property, value, description}] and object format {key: value}
@@ -18,6 +20,8 @@ const CustomPropertiesSection = () => {
 			value: value,
 		}));
 	}
+
+	normalizedProperties = normalizedProperties.filter((p) => !hiddenNames.has(p.property));
 
 	if (normalizedProperties.length === 0) return null;
 

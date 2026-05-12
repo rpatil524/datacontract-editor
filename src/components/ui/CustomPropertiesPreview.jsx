@@ -6,8 +6,9 @@ import Tooltip from './Tooltip.jsx';
  *
  * @param {Array|Object} properties - Array of {property, value, description} objects OR an object with key-value pairs
  * @param {string} pillClassName - Additional CSS classes to apply to individual pills (e.g., "mr-1 mt-1")
+ * @param {Set<string>} hiddenPropertyNames - Property names to omit (driven by `visible: false` customization)
  */
-const CustomPropertiesPreview = ({properties = [], pillClassName = ""}) => {
+const CustomPropertiesPreview = ({properties = [], pillClassName = "", hiddenPropertyNames}) => {
 	if (!properties) {
 		return null;
 	}
@@ -22,6 +23,10 @@ const CustomPropertiesPreview = ({properties = [], pillClassName = ""}) => {
 			property: key,
 			value: value,
 		}));
+	}
+
+	if (hiddenPropertyNames && hiddenPropertyNames.size > 0) {
+		normalizedProperties = normalizedProperties.filter((p) => !hiddenPropertyNames.has(p.property));
 	}
 
 	if (normalizedProperties.length === 0) {

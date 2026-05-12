@@ -150,7 +150,12 @@ dataContract:
         maxLength: 255                  # Maximum length (for text)
         condition: "expression"         # Conditional display expression
         positionAfter: "description"    # Render inline after this property (standard or custom)
+        hidden: true                    # Hide from form UI and preview (still editable in YAML editor)
 ```
+
+### Hiding properties from the form UI
+
+Set `hidden: true` to keep a custom property out of the form-based editor and the preview/display view. The property still round-trips through the YAML untouched — Monaco YAML editing shows and edits it normally. Use this for fields managed externally (API/automation) that non-technical users should not see or edit. Mirrors the `hidden` semantics already supported on standard properties.
 
 ### Positioning
 

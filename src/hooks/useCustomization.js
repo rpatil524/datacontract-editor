@@ -72,6 +72,21 @@ export function useHiddenProperties(level) {
 }
 
 /**
+ * Names of custom properties configured with `hidden: true` at this level.
+ * Use to filter form-style UIs and previews. Monaco YAML editing is not filtered.
+ * Mirrors the `hidden` semantics on standard properties.
+ * @param {string} level - Level key (e.g., 'root', 'schema.properties')
+ * @returns {Set<string>}
+ */
+export function useHiddenCustomPropertyNames(level) {
+	const { customProperties } = useCustomization(level);
+	return useMemo(
+		() => new Set(customProperties.filter((cp) => cp.hidden === true).map((cp) => cp.property)),
+		[customProperties]
+	);
+}
+
+/**
  * Get custom properties that are not assigned to any section
  * @param {string} level - Level key
  * @returns {Object[]} Array of ungrouped custom property configs
