@@ -8,11 +8,12 @@ import AuthoritativeDefinitionsPreview from '../../ui/AuthoritativeDefinitionsPr
 import CustomPropertiesPreview from '../../ui/CustomPropertiesPreview.jsx';
 import {useEditorStore} from "../../../store.js";
 import {useShallow} from "zustand/react/shallow";
-import {useHiddenCustomPropertyNames} from "../../../hooks/useCustomization.js";
+import {useCustomization, useHiddenCustomPropertyNames} from "../../../hooks/useCustomization.js";
 
 // Memoized property row component
 const SchemaProperty = ({ property, propertyName, schemaName, indent = 0 }) => {
 	const hiddenNames = useHiddenCustomPropertyNames('schema.properties');
+	const { customProperties: customPropertyConfigs } = useCustomization('schema.properties');
 	const hasChildren = property.properties && Array.isArray(property.properties) && property.properties.length > 0;
 
 	return (
@@ -140,7 +141,7 @@ const SchemaProperty = ({ property, propertyName, schemaName, indent = 0 }) => {
 								</span>
 							</Tooltip>
 						)}
-						<CustomPropertiesPreview properties={property.customProperties} pillClassName="mr-1 mt-1" hiddenPropertyNames={hiddenNames}/>
+						<CustomPropertiesPreview properties={property.customProperties} pillClassName="mr-1 mt-1" hiddenPropertyNames={hiddenNames} customPropertyConfigs={customPropertyConfigs}/>
             {property.tags && Array.isArray(property.tags) && <Tags tags={property.tags}/>}
 						{property.logicalTypeOptions?.format && (
 							<Tooltip content={
@@ -250,6 +251,7 @@ SchemaProperty.displayName = 'SchemaProperty';
 
 const SchemaTable = memo(({ schemaName, schema }) => {
 	const hiddenNames = useHiddenCustomPropertyNames('schema');
+	const { customProperties: customPropertyConfigs } = useCustomization('schema');
 	return (
 		<div className="mt-3 print:block">
 			<div className="overflow-x-auto shadow ring-1 ring-black/5 sm:rounded-lg">
@@ -283,7 +285,7 @@ const SchemaTable = memo(({ schemaName, schema }) => {
 							) : (
 								<div className="text-sm font-normal text-gray-400">No description</div>
 							)}
-							<CustomPropertiesPreview properties={schema.customProperties} pillClassName="mr-1 mt-1" hiddenPropertyNames={hiddenNames}/>
+							<CustomPropertiesPreview properties={schema.customProperties} pillClassName="mr-1 mt-1" hiddenPropertyNames={hiddenNames} customPropertyConfigs={customPropertyConfigs}/>
               {schema && schema.tags && schema.tags.length > 0 && <Tags tags={schema.tags}/>}
 							{schema && schema.quality && schema.quality.length > 0 && (
 								<div className="mt-2">

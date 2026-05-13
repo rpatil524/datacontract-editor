@@ -1,20 +1,25 @@
 import Tooltip from './Tooltip.jsx';
 
 /**
- * CustomPropertiesPreview component for displaying custom properties as pills
- * A compact preview component showing property-value pairs
+ * CustomPropertiesPreview component for displaying custom properties as pills.
+ * A compact preview component showing property-value pairs.
+ *
+ * When a customization config is provided, the pill label uses the configured
+ * `title` (falling back to the property name) and the tooltip surfaces the
+ * technical name (when it differs from the title) and the configured
+ * description.
  *
  * @param {Array|Object} properties - Array of {property, value, description} objects OR an object with key-value pairs
  * @param {string} pillClassName - Additional CSS classes to apply to individual pills (e.g., "mr-1 mt-1")
- * @param {Set<string>} hiddenPropertyNames - Property names to omit (driven by `visible: false` customization)
+ * @param {Set<string>} hiddenPropertyNames - Property names to omit
+ * @param {Array} customPropertyConfigs - Customization configs for this level (resolves title and description per property)
  */
-const CustomPropertiesPreview = ({properties = [], pillClassName = "", hiddenPropertyNames}) => {
+const CustomPropertiesPreview = ({properties = [], pillClassName = "", hiddenPropertyNames, customPropertyConfigs}) => {
 	if (!properties) {
 		return null;
 	}
 
 	// Normalize properties to array format
-	// Handle both array format [{property, value, description}] and object format {key: value}
 	let normalizedProperties = [];
 	if (Array.isArray(properties)) {
 		normalizedProperties = properties;
@@ -33,7 +38,14 @@ const CustomPropertiesPreview = ({properties = [], pillClassName = "", hiddenPro
 		return null;
 	}
 
-	// Helper to format value for display
+	// Index configs by property name for O(1) lookup
+	const configsByName = new Map();
+	if (Array.isArray(customPropertyConfigs)) {
+		for (const cfg of customPropertyConfigs) {
+			if (cfg?.property) configsByName.set(cfg.property, cfg);
+		}
+	}
+
 	const formatValue = (value) => {
 		if (value === null || value === undefined) return '';
 		if (typeof value === 'object') {
@@ -52,17 +64,33 @@ const CustomPropertiesPreview = ({properties = [], pillClassName = "", hiddenPro
 	return (
 		<>
 			{normalizedProperties.map((prop, index) => {
+				const cfg = configsByName.get(prop.property);
+				const label = cfg?.title || prop.property;
+				const showTechnicalName = !!cfg?.title && cfg.title !== prop.property;
+				const description = cfg?.description || prop.description;
+				const hasTooltip = showTechnicalName || !!description;
+
 				const pill = (
 					<span
-						className={`inline-flex items-center ${roundedClass} bg-yellow-50 ${paddingClass} text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20 ${pillClassName} ${prop.description ? 'cursor-help' : ''}`}
+						className={`inline-flex items-center ${roundedClass} bg-yellow-50 ${paddingClass} text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20 ${pillClassName} ${hasTooltip ? 'cursor-help' : ''}`}
 					>
-						{prop.property}:{formatValue(prop.value)}
+						{label}:{formatValue(prop.value)}
 					</span>
 				);
 
-				if (prop.description) {
+				if (hasTooltip) {
 					return (
-						<Tooltip key={index} content={<div className="text-xs">{prop.description}</div>}>
+						<Tooltip
+							key={index}
+							content={
+								<div className="text-xs space-y-1">
+									{showTechnicalName && (
+										<div className="font-mono text-gray-300">{prop.property}</div>
+									)}
+									{description && <div>{description}</div>}
+								</div>
+							}
+						>
 							{pill}
 						</Tooltip>
 					);

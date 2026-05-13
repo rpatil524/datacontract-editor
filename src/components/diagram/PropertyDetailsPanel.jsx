@@ -1269,17 +1269,21 @@ const PropertyDetailsPanel = ({ property, onUpdate, onDelete, focusSection, focu
         validationSection="Schema Properties"
       />
 
-      {/* Ungrouped Custom Properties */}
-      <UngroupedCustomProperties
-        customProperties={customPropertyConfigs}
-        customSections={customSections}
-        values={customPropertiesLookup}
-        onPropertyChange={updateCustomProperty}
-        context={propertyContext}
-        yamlParts={yamlParts}
-        validationKeyPrefix={`schema.properties.${property.name}`}
-        validationSection="Schema Properties"
-      />
+      {/* Ungrouped Custom Properties — wrapped in px-2 so the fields align
+          horizontally with section inputs (which sit inside DisclosurePanels
+          that use `px-2 pt-2 pb-1`). */}
+      <div className="px-2">
+        <UngroupedCustomProperties
+          customProperties={customPropertyConfigs}
+          customSections={customSections}
+          values={customPropertiesLookup}
+          onPropertyChange={updateCustomProperty}
+          context={propertyContext}
+          yamlParts={yamlParts}
+          validationKeyPrefix={`schema.properties.${property.name}`}
+          validationSection="Schema Properties"
+        />
+      </div>
 
       {/* Custom Properties Section (raw key-value editor) */}
       <Disclosure>
