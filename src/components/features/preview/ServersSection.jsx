@@ -5,9 +5,13 @@ import PropertyValueRenderer from '../../ui/PropertyValueRenderer.jsx';
 import QuestionMarkCircleIcon from '../../ui/icons/QuestionMarkCircleIcon.jsx';
 import {useEditorStore} from "../../../store.js";
 import {useShallow} from "zustand/react/shallow";
+import {useCustomization, useHiddenCustomPropertyNames} from "../../../hooks/useCustomization.js";
 
 // Memoized Server Item component
 const ServerItem = memo(({ server }) => {
+	const hiddenNames = useHiddenCustomPropertyNames('servers');
+	const { customProperties: customPropertyConfigs } = useCustomization('servers');
+	const configsByName = new Map((customPropertyConfigs || []).map((c) => [c.property, c]));
 	const getServerIcon = (serverType) => {
 		if (!serverType) return null;
 		const type = serverType.toLowerCase();
@@ -170,28 +174,39 @@ const ServerItem = memo(({ server }) => {
 							Array.isArray(server.customProperties) ? server.customProperties.length > 0 :
 							typeof server.customProperties === 'object' && Object.keys(server.customProperties).length > 0
 						) && (() => {
-							const normalizedProps = Array.isArray(server.customProperties)
+							const rawProps = Array.isArray(server.customProperties)
 								? server.customProperties
 								: Object.entries(server.customProperties).map(([key, value]) => ({
 									property: key,
 									value: value,
 								}));
-							return normalizedProps.map((customProperty, cpIndex) => (
-								<div key={cpIndex} className="flex flex-col">
-									<dt
-										className="text-xs font-medium text-gray-500 uppercase tracking-wide flex items-center gap-1">
-										{customProperty.property}
-										{customProperty.description && (
-											<Tooltip content={customProperty.description}>
-												<QuestionMarkCircleIcon />
-											</Tooltip>
-										)}
-									</dt>
-									<dd className="mt-1 text-sm text-gray-900">
-										<PropertyValueRenderer value={customProperty.value}/>
-									</dd>
-								</div>
-							));
+							const normalizedProps = rawProps.filter((p) => !hiddenNames.has(p.property));
+							return normalizedProps.map((customProperty, cpIndex) => {
+								const cfg = configsByName.get(customProperty.property);
+								const label = cfg?.title || customProperty.property;
+								const showTechnicalName = !!cfg?.title && cfg.title !== customProperty.property;
+								const description = cfg?.description || customProperty.description;
+								return (
+									<div key={cpIndex} className="flex flex-col">
+										<dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+											<div className="flex items-center gap-1">
+												{label}
+												{description && (
+													<Tooltip content={description}>
+														<QuestionMarkCircleIcon />
+													</Tooltip>
+												)}
+											</div>
+											{showTechnicalName && (
+												<div className="mt-0.5 font-mono text-[10px] normal-case tracking-normal text-gray-400">{customProperty.property}</div>
+											)}
+										</dt>
+										<dd className="mt-1 text-sm text-gray-900">
+											<PropertyValueRenderer value={customProperty.value}/>
+										</dd>
+									</div>
+								);
+							});
 						})()}
 						{server.roles && Array.isArray(server.roles) && server.roles.length > 0 && (
 							<div>

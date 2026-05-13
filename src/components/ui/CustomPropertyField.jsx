@@ -86,6 +86,25 @@ function validateValue(value, config) {
 }
 
 /**
+ * Renders the form-field label as the configured human-friendly title with
+ * the technical property name appended inline in monospace — but only when a
+ * title is configured and differs from the property name. For unconfigured
+ * (freeform) custom properties the property name IS the label, so no
+ * duplicate is shown.
+ */
+const FieldLabel = ({ title, property }) => {
+  const showTechnicalName = !!title && title !== property;
+  return (
+    <>
+      {title || property}
+      {showTechnicalName && (
+        <span className="ml-1.5 font-mono text-[10px] font-normal text-gray-500">{property}</span>
+      )}
+    </>
+  );
+};
+
+/**
  * Text field sub-component
  */
 const TextField = ({ config, value, onChange, errors }) => {
@@ -94,7 +113,7 @@ const TextField = ({ config, value, onChange, errors }) => {
   return (
     <ValidatedInput
       name={property}
-      label={title}
+      label={<FieldLabel title={title} property={property} />}
       value={value || ''}
       onChange={(e) => onChange(e.target.value || undefined)}
       required={required}
@@ -127,7 +146,7 @@ const TextareaField = ({ config, value, onChange, errors }) => {
           htmlFor={property}
           className="block text-xs font-medium leading-4 text-gray-900"
         >
-          {title}
+          <FieldLabel title={title} property={property} />
         </label>
         {description && (
           <Tooltip content={description}>
@@ -194,7 +213,7 @@ const NumberField = ({ config, value, onChange, errors }) => {
           htmlFor={property}
           className="block text-xs font-medium leading-4 text-gray-900"
         >
-          {title}
+          <FieldLabel title={title} property={property} />
         </label>
         {description && (
           <Tooltip content={description}>
@@ -256,7 +275,7 @@ const SelectField = ({ config, value, onChange, errors }) => {
   return (
     <ValidatedCombobox
       name={property}
-      label={title}
+      label={<FieldLabel title={title} property={property} />}
       options={options}
       value={value}
       onChange={(val) => onChange(val || undefined)}
@@ -311,7 +330,7 @@ const MultiselectField = ({ config, value, onChange, errors }) => {
     <div>
       <div className="flex items-center gap-1 mb-1">
         <label className="block text-xs font-medium leading-4 text-gray-900">
-          {title}
+          <FieldLabel title={title} property={property} />
         </label>
         {description && (
           <Tooltip content={description}>
@@ -369,7 +388,7 @@ const BooleanField = ({ config, value, onChange }) => {
           htmlFor={property}
           className="block text-xs font-medium leading-4 text-gray-900"
         >
-          {title}
+          <FieldLabel title={title} property={property} />
         </label>
         {description && (
           <Tooltip content={description}>
@@ -420,7 +439,7 @@ const DateField = ({ config, value, onChange, errors }) => {
           htmlFor={property}
           className="block text-xs font-medium leading-4 text-gray-900"
         >
-          {title}
+          <FieldLabel title={title} property={property} />
         </label>
         {description && (
           <Tooltip content={description}>
@@ -462,7 +481,7 @@ const UrlField = ({ config, value, onChange, errors }) => {
   return (
     <ValidatedInput
       name={property}
-      label={title}
+      label={<FieldLabel title={title} property={property} />}
       type="url"
       value={value || ''}
       onChange={(e) => onChange(e.target.value || undefined)}
@@ -484,7 +503,7 @@ const EmailField = ({ config, value, onChange, errors }) => {
   return (
     <ValidatedInput
       name={property}
-      label={title}
+      label={<FieldLabel title={title} property={property} />}
       type="email"
       value={value || ''}
       onChange={(e) => onChange(e.target.value || undefined)}
@@ -507,7 +526,7 @@ const ArrayField = ({ config, value, onChange, errors }) => {
   return (
     <div>
       <TagsInput
-        label={title}
+        label={<FieldLabel title={title} property={property} />}
         value={value || []}
         onChange={(val) => onChange(val && val.length > 0 ? val : undefined)}
         placeholder={placeholder}
@@ -542,13 +561,16 @@ const CustomPropertyField = ({
   validationKey,
   validationSection,
 }) => {
-  const { type = 'text', condition } = config;
+  const { type = 'text', condition, hidden } = config;
 
-  // Evaluate condition - hide field if condition not met
+  // hidden:true hides the property from form-style UIs (managed externally via API/YAML).
+  // Monaco YAML editing remains unfiltered — this component does not drive that surface.
+  // Mirrors the `hidden` semantics on standard properties.
   const shouldShow = useMemo(() => {
+    if (hidden === true) return false;
     if (!condition) return true;
     return evaluateCondition(condition, yamlParts, context);
-  }, [condition, yamlParts, context]);
+  }, [hidden, condition, yamlParts, context]);
 
   // Validate current value
   const validationErrors = useMemo(

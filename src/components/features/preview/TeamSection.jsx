@@ -8,9 +8,12 @@ import CustomPropertiesPreview from '../../ui/CustomPropertiesPreview.jsx';
 import QuestionMarkCircleIcon from '../../ui/icons/QuestionMarkCircleIcon.jsx';
 import {useEditorStore} from "../../../store.js";
 import {useShallow} from "zustand/react/shallow";
+import {useCustomization, useHiddenCustomPropertyNames} from "../../../hooks/useCustomization.js";
 
 // Memoized Team Member component
 const TeamMember = memo(({ teamMember }) => {
+	const hiddenNames = useHiddenCustomPropertyNames('team.members');
+	const { customProperties: customPropertyConfigs } = useCustomization('team.members');
 	const hasTeamMemberData = (member) => {
 		return member.username ||
 			member.name ||
@@ -75,7 +78,7 @@ const TeamMember = memo(({ teamMember }) => {
 								definitions={teamMember.authoritativeDefinitions}/>
 						)}
 						{hasCustomProps && (
-							<CustomPropertiesPreview properties={teamMember.customProperties}/>
+							<CustomPropertiesPreview properties={teamMember.customProperties} hiddenPropertyNames={hiddenNames} customPropertyConfigs={customPropertyConfigs}/>
 						)}
 					</div>
 				);
@@ -96,6 +99,9 @@ TeamMember.displayName = 'TeamMember';
 const TeamSection = () => {
 	const team = useEditorStore(useShallow(state => state.getValue('team')));
 	const teamMembers = team?.members || [];
+	const teamHiddenNames = useHiddenCustomPropertyNames('team');
+	const { customProperties: teamCustomPropertyConfigs } = useCustomization('team');
+	const teamConfigsByName = new Map((teamCustomPropertyConfigs || []).map((c) => [c.property, c]));
 	const hasData = team?.name || team?.description || teamMembers?.length > 0 || (team?.tags && team?.tags?.length > 0);
 
 	if (!hasData) return null;
@@ -158,32 +164,44 @@ const TeamSection = () => {
 							Array.isArray(team.customProperties) ? team.customProperties.length > 0 :
 							typeof team.customProperties === 'object' && Object.keys(team.customProperties).length > 0
 						) && (() => {
-							const normalizedProps = Array.isArray(team.customProperties)
+							const rawProps = Array.isArray(team.customProperties)
 								? team.customProperties
 								: Object.entries(team.customProperties).map(([key, value]) => ({
 									property: key,
 									value: value,
 								}));
+							const normalizedProps = rawProps.filter((p) => !teamHiddenNames.has(p.property));
+							if (normalizedProps.length === 0) return null;
 							return (
 								<div>
 									<dt className="text-sm font-medium text-gray-500 mb-2">Custom Properties</dt>
 									<dd className="flex flex-wrap gap-x-4 gap-y-2">
-										{normalizedProps.map((customProp, index) => (
-											<div key={index} className="min-w-0">
-												<dt
-													className="text-xs font-medium text-gray-500 uppercase tracking-wide inline-flex items-center gap-1">
-													{customProp.property}
-													{customProp.description && (
-														<Tooltip content={customProp.description}>
-															<QuestionMarkCircleIcon />
-														</Tooltip>
-													)}
-												</dt>
-												<dd className="text-sm text-gray-900">
-													<PropertyValueRenderer value={customProp.value}/>
-												</dd>
-											</div>
-										))}
+										{normalizedProps.map((customProp, index) => {
+											const cfg = teamConfigsByName.get(customProp.property);
+											const label = cfg?.title || customProp.property;
+											const showTechnicalName = !!cfg?.title && cfg.title !== customProp.property;
+											const description = cfg?.description || customProp.description;
+											return (
+												<div key={index} className="min-w-0">
+													<dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+														<div className="inline-flex items-center gap-1">
+															{label}
+															{description && (
+																<Tooltip content={description}>
+																	<QuestionMarkCircleIcon />
+																</Tooltip>
+															)}
+														</div>
+														{showTechnicalName && (
+															<div className="mt-0.5 font-mono text-[10px] normal-case tracking-normal text-gray-400">{customProp.property}</div>
+														)}
+													</dt>
+													<dd className="text-sm text-gray-900">
+														<PropertyValueRenderer value={customProp.value}/>
+													</dd>
+												</div>
+											);
+										})}
 									</dd>
 								</div>
 							);
