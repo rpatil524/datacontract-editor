@@ -9,6 +9,7 @@ import {
 	SnowflakeIcon,
 	StarburstIcon, TeamsIcon
 } from "../../assets/link-icons/index.js";
+import SemanticIcon from "./icons/SemanticIcon.jsx";
 
 /**
  * IconResolver component that displays an icon based on the URL domain or type
@@ -185,17 +186,6 @@ export function IconResolver({ url, type, className = "h-4 w-4" }) {
           fillRule="evenodd"
         />
       </g>
-    </svg>
-  );
-
-  // Semantic ontology icon (connected nodes)
-  const SemanticIcon = ({ className: cls }) => (
-    <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="5" r="3" />
-      <circle cx="5" cy="19" r="3" />
-      <circle cx="19" cy="19" r="3" />
-      <line x1="12" y1="8" x2="5" y2="16" />
-      <line x1="12" y1="8" x2="19" y2="16" />
     </svg>
   );
 
