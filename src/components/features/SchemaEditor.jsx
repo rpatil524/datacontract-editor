@@ -18,6 +18,7 @@ import {Disclosure, DisclosureButton, DisclosurePanel} from '@headlessui/react';
 import PropertyRow from './schema/PropertyRow.jsx';
 import {useSchemaOperations} from './schema/useSchemaOperations.js';
 import {useCustomization, useIsPropertyHidden, useStandardPropertyOverride} from '../../hooks/useCustomization.js';
+import {useInheritedDefinition} from '../../hooks/useInheritedDefinition.js';
 import {CustomSections, UngroupedCustomProperties} from '../ui/CustomSection.jsx';
 import {DefinitionSelectionModal} from '../ui/DefinitionSelectionModal.jsx';
 import {
@@ -82,6 +83,11 @@ const SchemaEditor = ({schemaIndex}) => {
 
 	// Get customization config for schema level
 	const {customProperties: customPropertyConfigs, customSections} = useCustomization('schema');
+
+	// Fetch inherited values from the schema-level semantic / authoritative
+	// definition (if any). Same pattern PropertyDetailsPanel uses for properties.
+	const currentSchema = schema?.[schemaIndex] || {};
+	const {definitionData: schemaDefinitionData} = useInheritedDefinition(currentSchema.authoritativeDefinitions);
 
 	// Check hidden status for standard properties
 	const isNameHidden = useIsPropertyHidden('schema', 'name');
@@ -526,7 +532,8 @@ const SchemaEditor = ({schemaIndex}) => {
 											onClear={() => removeValue(`schema[${schemaIndex}].description`)}
 											required={descriptionOverride?.required ?? false}
 											tooltip={descriptionOverride?.description || 'Description of what this schema contains'}
-											placeholder={descriptionOverride?.placeholder || 'Describe the schema...'}
+											placeholder={schemaDefinitionData?.description || descriptionOverride?.placeholder || 'Describe the schema...'}
+											placeholderClassName={schemaDefinitionData?.description && !schema[schemaIndex].description ? 'placeholder:text-blue-400' : 'placeholder:text-gray-400'}
 											minLength={descriptionOverride?.minLength}
 											maxLength={descriptionOverride?.maxLength}
 											rows={2}
@@ -566,7 +573,8 @@ const SchemaEditor = ({schemaIndex}) => {
 																onChange={(e) => setValue(`schema[${schemaIndex}].businessName`, e.target.value)}
 																required={businessNameOverride?.required ?? false}
 																tooltip={businessNameOverride?.description || 'Human-friendly name for the schema'}
-																placeholder={businessNameOverride?.placeholder || 'Human readable name'}
+																placeholder={schemaDefinitionData?.businessName || businessNameOverride?.placeholder || 'Human readable name'}
+																placeholderClassName={schemaDefinitionData?.businessName && !schema[schemaIndex].businessName ? 'placeholder:text-blue-400' : 'placeholder:text-gray-400'}
 																pattern={businessNameOverride?.pattern}
 																patternMessage={businessNameOverride?.patternMessage}
 																minLength={businessNameOverride?.minLength}
@@ -593,7 +601,8 @@ const SchemaEditor = ({schemaIndex}) => {
 																	}}
 																	required={physicalTypeOverride?.required ?? false}
 																	tooltip={physicalTypeOverride?.description || 'Physical type of the schema (table, view, etc.)'}
-																	placeholder={physicalTypeOverride?.placeholder || 'table'}
+																	placeholder={schemaDefinitionData?.physicalType || physicalTypeOverride?.placeholder || 'table'}
+																	placeholderClassName={schemaDefinitionData?.physicalType && !schema[schemaIndex].physicalType ? 'placeholder:text-blue-400' : 'placeholder:text-gray-400'}
 																	pattern={physicalTypeOverride?.pattern}
 																	patternMessage={physicalTypeOverride?.patternMessage}
 																	minLength={physicalTypeOverride?.minLength}
@@ -617,7 +626,8 @@ const SchemaEditor = ({schemaIndex}) => {
 																onChange={(e) => setValue(`schema[${schemaIndex}].physicalName`, e.target.value)}
 																required={physicalNameOverride?.required ?? false}
 																tooltip={physicalNameOverride?.description || 'Physical name in the database/storage'}
-																placeholder={physicalNameOverride?.placeholder || 'shipments_v1'}
+																placeholder={schemaDefinitionData?.physicalName || physicalNameOverride?.placeholder || 'shipments_v1'}
+																placeholderClassName={schemaDefinitionData?.physicalName && !schema[schemaIndex].physicalName ? 'placeholder:text-blue-400' : 'placeholder:text-gray-400'}
 																pattern={physicalNameOverride?.pattern}
 																patternMessage={physicalNameOverride?.patternMessage}
 																minLength={physicalNameOverride?.minLength}
@@ -634,7 +644,8 @@ const SchemaEditor = ({schemaIndex}) => {
 																onChange={(e) => setValue(`schema[${schemaIndex}].logicalType`, e.target.value)}
 																required={logicalTypeOverride?.required ?? false}
 																tooltip={logicalTypeOverride?.description || 'Logical type of the schema (object, array, etc.)'}
-																placeholder={logicalTypeOverride?.placeholder || 'object'}
+																placeholder={schemaDefinitionData?.logicalType || logicalTypeOverride?.placeholder || 'object'}
+																placeholderClassName={schemaDefinitionData?.logicalType && !schema[schemaIndex].logicalType ? 'placeholder:text-blue-400' : 'placeholder:text-gray-400'}
 																pattern={logicalTypeOverride?.pattern}
 																patternMessage={logicalTypeOverride?.patternMessage}
 																minLength={logicalTypeOverride?.minLength}
@@ -661,8 +672,8 @@ const SchemaEditor = ({schemaIndex}) => {
 																rows={2}
 																value={schema[schemaIndex].dataGranularityDescription || ''}
 																onChange={(e) => setValue(`schema[${schemaIndex}].dataGranularityDescription`, e.target.value)}
-																className="mt-1 block w-full rounded-md border-0 py-1.5 pl-2 pr-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 text-xs leading-4"
-																placeholder="e.g., One record per customer per day"
+																className={`mt-1 block w-full rounded-md border-0 py-1.5 pl-2 pr-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 ${schemaDefinitionData?.dataGranularityDescription && !schema[schemaIndex].dataGranularityDescription ? 'placeholder:text-blue-400' : 'placeholder:text-gray-400'} focus:ring-2 focus:ring-inset focus:ring-indigo-600 text-xs leading-4`}
+																placeholder={schemaDefinitionData?.dataGranularityDescription || "e.g., One record per customer per day"}
 															/>
 														</div>
 													)}

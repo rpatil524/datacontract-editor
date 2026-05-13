@@ -9,11 +9,13 @@ import CustomPropertiesPreview from '../../ui/CustomPropertiesPreview.jsx';
 import {useEditorStore} from "../../../store.js";
 import {useShallow} from "zustand/react/shallow";
 import {useCustomization, useHiddenCustomPropertyNames} from "../../../hooks/useCustomization.js";
+import {useInheritedDefinition} from "../../../hooks/useInheritedDefinition.js";
 
 // Memoized property row component
 const SchemaProperty = ({ property, propertyName, schemaName, indent = 0 }) => {
 	const hiddenNames = useHiddenCustomPropertyNames('schema.properties');
 	const { customProperties: customPropertyConfigs } = useCustomization('schema.properties');
+	const { definitionData: propDefinition } = useInheritedDefinition(property?.authoritativeDefinitions);
 	const hasChildren = property.properties && Array.isArray(property.properties) && property.properties.length > 0;
 
 	return (
@@ -62,6 +64,8 @@ const SchemaProperty = ({ property, propertyName, schemaName, indent = 0 }) => {
 				<td className="px-3 py-2 text-sm text-gray-500">
 					{property.description ? (
 						<div>{property.description}</div>
+					) : propDefinition?.description ? (
+						<div className="text-blue-400" title="Inherited from semantic definition">{propDefinition.description}</div>
 					) : (
 						<div className="text-gray-400">No description</div>
 					)}
@@ -252,6 +256,7 @@ SchemaProperty.displayName = 'SchemaProperty';
 const SchemaTable = memo(({ schemaName, schema }) => {
 	const hiddenNames = useHiddenCustomPropertyNames('schema');
 	const { customProperties: customPropertyConfigs } = useCustomization('schema');
+	const { definitionData: schemaDefinition } = useInheritedDefinition(schema?.authoritativeDefinitions);
 	return (
 		<div className="mt-3 print:block">
 			<div className="overflow-x-auto shadow ring-1 ring-black/5 sm:rounded-lg">
@@ -282,6 +287,8 @@ const SchemaTable = memo(({ schemaName, schema }) => {
 							)}
 							{schema.description ? (
 								<div className="text-sm font-normal text-gray-500">{schema.description}</div>
+							) : schemaDefinition?.description ? (
+								<div className="text-sm font-normal text-blue-400" title="Inherited from semantic definition">{schemaDefinition.description}</div>
 							) : (
 								<div className="text-sm font-normal text-gray-400">No description</div>
 							)}

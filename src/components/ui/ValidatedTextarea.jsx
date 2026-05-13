@@ -19,6 +19,7 @@ const ValidatedTextarea = ({
   maxLength,
   actions,
   className = '',
+  placeholderClassName = 'placeholder:text-gray-400',
   ...props
 }) => {
   const strValue = value || '';
@@ -75,7 +76,7 @@ const ValidatedTextarea = ({
         rows={rows}
         value={value}
         onChange={handleChange}
-        className={`mt-1 block w-full rounded-md border-0 py-1.5 pl-2 pr-3 text-gray-900 shadow-sm ring-1 ring-inset ${ringClass} placeholder:text-gray-400 focus:ring-2 focus:ring-inset disabled:bg-gray-50 disabled:text-gray-500 disabled:ring-gray-200 text-xs leading-4 ${className}`}
+        className={`mt-1 block w-full rounded-md border-0 py-1.5 pl-2 pr-3 text-gray-900 shadow-sm ring-1 ring-inset ${ringClass} ${placeholderClassName} focus:ring-2 focus:ring-inset disabled:bg-gray-50 disabled:text-gray-500 disabled:ring-gray-200 text-xs leading-4 ${className}`}
         placeholder={placeholder}
         aria-invalid={hasError}
         aria-describedby={hasError ? `${name}-error` : undefined}

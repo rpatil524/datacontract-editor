@@ -201,22 +201,32 @@ const PropertyRow = ({
 								placeholder="property name"
 								autoFocus
 							/>
-						) : (
-							<span
-								className={`cursor-pointer text-sm font-medium hover:text-indigo-600 hover:bg-indigo-50 px-1.5 py-0.5 rounded transition-colors border border-transparent hover:border-indigo-200 min-w-32 flex-shrink-0 ${
-									!property.name || property?.name?.toString().trim() === '' ? 'text-gray-400 italic' : 'text-gray-600'
-								}`}
-								onClick={(e) => {
-									e.stopPropagation();
-									onSelectProperty(currentPath, property);
-									setEditedPropertyName(property?.name || '');
-									setEditingPropertyName(true);
-								}}
-								title={property.name || "Click to edit"}
-							>
-                                {!property.name || property?.name?.toString().trim() === '' ? 'unnamed property' : property.name}
-                            </span>
-						)}
+						) : (() => {
+							const hasOwnName = !!property.name && property.name.toString().trim() !== '';
+							const inheritedName = !hasOwnName && (definition?.name || definition?.businessName);
+							const displayName = hasOwnName
+								? property.name
+								: inheritedName || 'unnamed property';
+							const colorClass = hasOwnName
+								? 'text-gray-600'
+								: inheritedName
+									? 'text-blue-500'
+									: 'text-gray-400 italic';
+							return (
+								<span
+									className={`cursor-pointer text-sm font-medium hover:text-indigo-600 hover:bg-indigo-50 px-1.5 py-0.5 rounded transition-colors border border-transparent hover:border-indigo-200 min-w-32 flex-shrink-0 ${colorClass}`}
+									onClick={(e) => {
+										e.stopPropagation();
+										onSelectProperty(currentPath, property);
+										setEditedPropertyName(property?.name || '');
+										setEditingPropertyName(true);
+									}}
+									title={property.name || (inheritedName ? `Inherited: ${inheritedName}` : 'Click to edit')}
+								>
+                                    {displayName}
+                                </span>
+							);
+						})()}
 
 						{/* Property Type - min width for alignment */}
 						<div className="min-w-20 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -241,12 +251,18 @@ const PropertyRow = ({
 							<PropertyIndicators property={property}/>
 						</div>
 
-						{/* Description preview */}
-						{property.description && (
+						{/* Description preview — fall back to the inherited definition's description
+						    in blue when the property has none of its own, mirroring the type-from-
+						    definition affordance just above. */}
+						{property.description ? (
 							<span className="text-xs text-gray-400 truncate flex-1" title={property.description}>
                                 {property.description}
                             </span>
-						)}
+						) : definition?.description ? (
+							<span className="text-xs text-blue-400 truncate flex-1" title={`Inherited: ${definition.description}`}>
+                                {definition.description}
+                            </span>
+						) : null}
 					</div>
 
 					{/* Action Icons */}
