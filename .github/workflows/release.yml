@@ -20,9 +20,14 @@ jobs:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
 
-      # Ensure npm 11.5.1 or later is installed
+      # Ensure npm 11.5.1 or later is installed.
+      # `npm install -g npm@latest` is broken on the Node 22.22.2 toolcache
+      # (missing promise-retry in npm's own tree, actions/runner-images#13883),
+      # so install via corepack, which bypasses npm's broken self-rebuild.
       - name: Update npm
-        run: npm install -g npm@latest
+        run: |
+          corepack enable
+          corepack prepare npm@latest --activate
 
       - name: Set version from release tag
         run: |
