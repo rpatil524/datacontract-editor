@@ -29,6 +29,7 @@ docs/superpowers
 # local templates
 /templates
 /.playwright-mcp
+/.playwright-cli
 
 # dev-only runtime config (served as /config.json in dev server only)
 dev-config.json
